@@ -11,7 +11,7 @@ export interface WildlifeLocation {
     funFact?: string;
   }
   
-  export const wildlifeData: WildlifeLocation[] = [
+  export const wildlifeData = [
     {
       id: 1,
       name: "Yellowstone",

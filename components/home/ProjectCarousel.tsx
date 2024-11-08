@@ -13,7 +13,11 @@ interface Project {
 
 const ProjectCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-
+  // Add a check for empty projects array
+  if (!projects || projects.length === 0) {
+    return null; // or return a loading state
+  }
+  
   // Auto-advance carousel
   useEffect(() => {
     const timer = setInterval(() => {

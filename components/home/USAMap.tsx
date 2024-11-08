@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { wildlifeData } from '@/data/wildlifeData';
 import {
   ComposableMap,
@@ -14,7 +14,7 @@ import { feature } from 'topojson-client';
 export interface WildlifeLocation {
   id: number;
   name: string;
-  coordinates: [number, number];
+  coordinates: [number, number];  // Explicitly typed as tuple
   animal: string;
   description: string;
   imageUrl: string;
@@ -24,56 +24,114 @@ export interface WildlifeLocation {
   funFact?: string;
 }
 
+// Type assertion for wildlifeData
+const typedWildlifeData = wildlifeData as WildlifeLocation[];
+
+const geoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
 
 export default function USAMap() {
   const [selectedLocation, setSelectedLocation] = useState<WildlifeLocation | null>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [geoData, setGeoData] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
   const [hoveredLocation, setHoveredLocation] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const MapChart = useMemo(() => {
+    return (
+      <ComposableMap
+        projection="geoAlbersUsa"
+        className="w-full h-full"
+        projectionConfig={{
+          scale: 1000
+        }}
+      >
+        <ZoomableGroup>
+          <Geographies geography={geoUrl}>
+            {({ geographies }) =>
+              geographies.map((geo) => (
+                <Geography
+                  key={geo.rsmKey}
+                  geography={geo}
+                  fill="#1F3B2B"
+                  stroke="#34D399"
+                  strokeWidth={0.5}
+                  style={{
+                    default: { outline: "none" },
+                    hover: { fill: "#2D5A40", outline: "none" },
+                    pressed: { outline: "none" },
+                  }}
+                />
+              ))
+            }
+          </Geographies>
+
+          {typedWildlifeData.map((location) => (
+            <Marker
+              key={location.id}
+              coordinates={location.coordinates}
+              onClick={() => setSelectedLocation(location)}
+            >
+              <motion.g
+                whileHover={{ scale: 1.2 }}
+                onHoverStart={() => setHoveredLocation(location.id)}
+                onHoverEnd={() => setHoveredLocation(null)}
+                className="cursor-pointer"
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ 
+                  opacity: 1, 
+                  scale: hoveredLocation === location.id ? 1.2 : 1,
+                  y: hoveredLocation === location.id ? -5 : 0
+                }}
+                transition={{ 
+                  type: "spring",
+                  stiffness: 260,
+                  damping: 20 
+                }}
+              >
+                <circle
+                  r={8}
+                  fill={selectedLocation?.id === location.id ? "#34D399" : "#10B981"}
+                  stroke="#ffffff"
+                  strokeWidth={2}
+                />
+                <text
+                  textAnchor="middle"
+                  y={-12}
+                  style={{ fontSize: "16px", userSelect: "none" }}
+                >
+                  {location.animalEmoji}
+                </text>
+                {hoveredLocation === location.id && (
+                  <motion.text
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="pointer-events-none"
+                    textAnchor="middle"
+                    y={16}
+                    style={{ 
+                      fontSize: "12px",
+                      fill: "#ffffff",
+                      fontWeight: "bold"
+                    }}
+                  >
+                    {location.animal}
+                  </motion.text>
+                )}
+              </motion.g>
+            </Marker>
+          ))}
+        </ZoomableGroup>
+      </ComposableMap>
+    );
+  }, [hoveredLocation, selectedLocation]);
 
   useEffect(() => {
-    const loadMapData = async () => {
-      try {
-        const response = await fetch(
-          "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json"
-        );
-        
-        if (!response.ok) {
-          throw new Error(`Failed to load map data: ${response.status} ${response.statusText}`);
-        }
-        
-        const topology = await response.json();
-        const geoJson = {
-          type: "FeatureCollection",
-          features: (feature(topology, topology.objects.states) as any).features
-        };
-        
-        setGeoData(geoJson);
-        setMapLoaded(true);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'An error occurred loading map data';
-        setError(errorMessage);
-        console.error("Error loading map data:", errorMessage);
-      }
-    };
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
 
-    loadMapData();
+    return () => clearTimeout(timer);
   }, []);
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px] bg-red-50/50 backdrop-blur-sm rounded-lg">
-        <div className="text-center">
-          <p className="text-red-500 font-semibold mb-2">Error loading map:</p>
-          <p className="text-red-600">{error}</p>
-          <p className="text-sm text-gray-500 mt-2">Please try refreshing the page</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!geoData || !mapLoaded) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px] bg-emerald-50/50 backdrop-blur-sm rounded-lg">
         <div className="text-center">
@@ -96,98 +154,7 @@ export default function USAMap() {
       
       <div className="relative">
         <div className="w-full h-[80vh] bg-emerald-900/30 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden">
-          <ComposableMap
-            projection="geoAlbersUsa"
-            className="w-full h-full"
-            projectionConfig={{
-              scale: 1000
-            }}
-          >
-            <ZoomableGroup 
-              zoom={1}
-              minZoom={0.8}
-              maxZoom={4}
-              translateExtent={[
-                [-200, -100],
-                [1000, 600]
-              ]}
-            >
-              <Geographies geography={geoData}>
-                {({ geographies }) =>
-                  geographies.map((geo) => (
-                    <Geography
-                      key={geo.rsmKey}
-                      geography={geo}
-                      fill="#1F3B2B"
-                      stroke="#34D399"
-                      strokeWidth={0.5}
-                      style={{
-                        default: { outline: "none" },
-                        hover: { fill: "#2D5A40", outline: "none" },
-                        pressed: { outline: "none" },
-                      }}
-                    />
-                  ))
-                }
-              </Geographies>
-
-              {wildlifeData.map((location) => (
-                <Marker
-                  key={location.id}
-                  coordinates={location.coordinates}
-                  onClick={() => setSelectedLocation(location)}
-                >
-                  <motion.g
-                    whileHover={{ scale: 1.2 }}
-                    onHoverStart={() => setHoveredLocation(location.id)}
-                    onHoverEnd={() => setHoveredLocation(null)}
-                    className="cursor-pointer"
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ 
-                      opacity: 1, 
-                      scale: hoveredLocation === location.id ? 1.2 : 1,
-                      y: hoveredLocation === location.id ? -5 : 0
-                    }}
-                    transition={{ 
-                      type: "spring",
-                      stiffness: 260,
-                      damping: 20 
-                    }}
-                  >
-                    <circle
-                      r={8}
-                      fill={selectedLocation?.id === location.id ? "#34D399" : "#10B981"}
-                      stroke="#ffffff"
-                      strokeWidth={2}
-                    />
-                    <text
-                      textAnchor="middle"
-                      y={-12}
-                      style={{ fontSize: "16px", userSelect: "none" }}
-                    >
-                      {location.animalEmoji}
-                    </text>
-                    {hoveredLocation === location.id && (
-                      <motion.text
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="pointer-events-none"
-                        textAnchor="middle"
-                        y={16}
-                        style={{ 
-                          fontSize: "12px",
-                          fill: "#ffffff",
-                          fontWeight: "bold"
-                        }}
-                      >
-                        {location.animal}
-                      </motion.text>
-                    )}
-                  </motion.g>
-                </Marker>
-              ))}
-            </ZoomableGroup>
-          </ComposableMap>
+          {MapChart}
         </div>
 
         <AnimatePresence>
