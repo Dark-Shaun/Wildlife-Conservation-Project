@@ -9,12 +9,11 @@ import {
   ZoomableGroup
 } from "react-simple-maps";
 import { motion, AnimatePresence } from 'framer-motion';
-import { feature } from 'topojson-client';
 
 export interface WildlifeLocation {
   id: number;
   name: string;
-  coordinates: [number, number];  // Explicitly typed as tuple
+  coordinates: [number, number];
   animal: string;
   description: string;
   imageUrl: string;

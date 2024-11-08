@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { projects } from '@/data/projectData';
 interface Project {
   id: number;
@@ -11,13 +11,13 @@ interface Project {
 
 
 
-const ProjectCarousel = () => {
+export default function ProjectCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
   // Add a check for empty projects array
   if (!projects || projects.length === 0) {
     return null; // or return a loading state
   }
-  
+
   // Auto-advance carousel
   useEffect(() => {
     const timer = setInterval(() => {
@@ -101,4 +101,4 @@ const ProjectCarousel = () => {
   );
 };
 
-export default ProjectCarousel;
+// export default ProjectCarousel;
