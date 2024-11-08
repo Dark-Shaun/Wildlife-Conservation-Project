@@ -1,0 +1,18 @@
+@layer components {
+  .carousel-card {
+    @apply relative overflow-hidden rounded-lg shadow-xl transition-all duration-300;
+  }
+  
+  .carousel-loading {
+    @apply animate-pulse bg-gray-200 dark:bg-gray-700;
+  }
+  
+  .carousel-card:hover {
+    @apply transform scale-105 shadow-2xl brightness-110;
+  }
+
+  .carousel-navigation {
+    @apply absolute top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 
+    hover:bg-white/20 transition-colors backdrop-blur-sm;
+  }
+}

@@ -1,0 +1,27 @@
+.carousel-container {
+  @apply relative h-[600px] flex items-center justify-center;
+}
+
+.carousel-item {
+  @apply relative rounded-2xl overflow-hidden cursor-pointer backdrop-blur-sm;
+}
+
+.carousel-item-active {
+  @apply w-[400px] h-[400px] md:w-[500px] md:h-[500px];
+}
+
+.carousel-item-inactive {
+  @apply w-[250px] h-[250px] md:w-[300px] md:h-[300px] opacity-70;
+}
+
+.carousel-overlay {
+  @apply absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent;
+}
+
+.carousel-content {
+  @apply absolute bottom-0 left-0 right-0 p-6 text-white;
+}
+
+.carousel-dots {
+  @apply absolute bottom-4 md:bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2 z-30;
+}

@@ -1,0 +1,23 @@
+.hero-container {
+    @apply relative h-screen w-full overflow-hidden;
+  }
+  
+  .hero-content {
+    @apply relative z-10 container mx-auto px-4 h-full flex items-center;
+  }
+  
+  .hero-text-container {
+    @apply text-white max-w-2xl;
+  }
+  
+  .hero-title {
+    @apply text-6xl font-bold mb-4 flex;
+  }
+  
+  .hero-subtitle {
+    @apply text-xl mb-8;
+  }
+  
+  .hero-button {
+    @apply bg-green-600 hover:bg-green-700 px-8 py-3 rounded-full text-lg font-semibold;
+  }
